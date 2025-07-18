@@ -352,22 +352,22 @@ docker-compose -f docker-compose.prod.yml up -d
 
 ## Roadmap
 
-### Q1 2024
+### Q4 2025
 - [ ] MVP release with core features
 - [ ] Beta testing with 50 users
 - [ ] Integration with 5 major DEXs
 
-### Q2 2024
+### Q1 2026
 - [ ] Multi-chain support (Polygon, Arbitrum)
 - [ ] Advanced AI trading strategies
 - [ ] Mobile app development
 
-### Q3 2024
+### Q2 2026
 - [ ] Automated trading execution
 - [ ] Social trading features
 - [ ] Advanced analytics dashboard
 
-### Q4 2024
+### Q3 2026
 - [ ] Enterprise features
 - [ ] API for third-party integrations
 - [ ] Advanced risk management tools
