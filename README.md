@@ -281,7 +281,7 @@ PORT=3000
 
 1. **Clone and Setup**
 ```bash
-git clone https://github.com/yourusername/avalanche-ai-trading-assistant.git
+git clone https://github.com/thetruesammyjay/avalanche-ai-trading-assistant.git
 cd avalanche-ai-trading-assistant
 
 # Copy and configure environment
@@ -439,3 +439,4 @@ MIT License - Built for the Avalanche ecosystem
 ---
 
 *Powered by Avalanche - The fastest smart contracts platform in the blockchain industry, as measured by time-to-finality.*
+
