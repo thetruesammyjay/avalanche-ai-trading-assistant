@@ -818,3 +818,875 @@ class RealTimeAIProcessor:
         """Process validator performance updates"""
         
         validator_id = event_data['validator_id']
+        metrics = event_data['metrics']
+        
+        # Update validator scoring model
+        await self._update_validator_score(validator_id, metrics)
+        
+        # Check if any users have delegations to this validator
+        affected_users = await self._get_users_delegating_to_validator(validator_id)
+        
+        for user_id in affected_users:
+            # Recalculate staking recommendations
+            new_recommendations = await self._get_staking_recommendations(user_id)
+            
+            # Send alert if validator performance significantly changed
+            if self._should_alert_validator_change(validator_id, metrics):
+                alert = self._generate_validator_alert(user_id, validator_id, metrics)
+                await self._send_alert(alert)
+    
+    async def _process_defi_transaction(self, event_data: Dict):
+        """Process DeFi transaction for market insights"""
+        
+        protocol = event_data['protocol']
+        transaction_type = event_data['type']  # 'swap', 'liquidity_add', 'liquidity_remove'
+        amount_usd = event_data['amount_usd']
+        
+        # Update protocol TVL and volume metrics
+        await self._update_protocol_metrics(protocol, transaction_type, amount_usd)
+        
+        # Check for unusual activity patterns
+        if await self._detect_unusual_activity(protocol, transaction_type, amount_usd):
+            # Alert users about potential opportunities or risks
+            alert = self._generate_protocol_alert(protocol, transaction_type, amount_usd)
+            await self._broadcast_alert(alert)
+    
+    async def _process_subnet_metric(self, event_data: Dict):
+        """Process subnet performance metrics"""
+        
+        subnet_id = event_data['subnet_id']
+        metrics = event_data['metrics']
+        
+        # Update subnet performance models
+        await self._update_subnet_analysis(subnet_id, metrics)
+        
+        # Check for subnet opportunities
+        opportunities = await self._analyze_subnet_opportunities(subnet_id, metrics)
+        
+        if opportunities:
+            # Alert relevant users about subnet opportunities
+            alert = self._generate_subnet_alert(subnet_id, opportunities)
+            await self._send_targeted_alerts(alert)
+
+class ModelManager:
+    """Manages ML model lifecycle and retraining"""
+    
+    def __init__(self):
+        self.models = {}
+        self.training_scheduler = TrainingScheduler()
+        
+    async def retrain_models(self):
+        """Retrain models based on new data"""
+        
+        for model_name, model in self.models.items():
+            if self._should_retrain(model_name):
+                await self._retrain_model(model_name, model)
+    
+    def _should_retrain(self, model_name: str) -> bool:
+        """Determine if model needs retraining based on performance metrics"""
+        
+        performance_metrics = self._get_model_performance(model_name)
+        
+        # Retrain if accuracy drops below threshold
+        if performance_metrics['accuracy'] < 0.85:
+            return True
+        
+        # Retrain if data drift detected
+        if performance_metrics['data_drift_score'] > 0.3:
+            return True
+        
+        return False
+    
+    async def _retrain_model(self, model_name: str, model):
+        """Retrain a specific model with fresh data"""
+        
+        # Get fresh training data
+        training_data = await self._get_training_data(model_name)
+        
+        # Retrain model
+        model.train(training_data)
+        
+        # Validate new model performance
+        validation_score = await self._validate_model(model_name, model)
+        
+        if validation_score > self._get_current_score(model_name):
+            # Deploy new model
+            self.models[model_name] = model
+            await self._save_model(model_name, model)
+```
+
+## Security Architecture
+
+### 1. Multi-Layer Security Framework
+
+```typescript
+class SecurityManager {
+  private encryptionService: EncryptionService;
+  private authService: AuthenticationService;
+  private rateLimiter: RateLimitService;
+  private auditLogger: AuditLogger;
+  
+  constructor() {
+    this.encryptionService = new AES256EncryptionService();
+    this.authService = new JWTAuthenticationService();
+    this.rateLimiter = new RedisRateLimitService();
+    this.auditLogger = new AuditLogger();
+  }
+  
+  async validateWalletConnection(signature: string, message: string, address: string): Promise<boolean> {
+    // Verify wallet signature
+    const isValidSignature = await this.verifyWalletSignature(signature, message, address);
+    
+    if (!isValidSignature) {
+      await this.auditLogger.logSecurityEvent('INVALID_WALLET_SIGNATURE', { address });
+      return false;
+    }
+    
+    // Check for suspicious patterns
+    const riskScore = await this.calculateRiskScore(address);
+    if (riskScore > 0.8) {
+      await this.auditLogger.logSecurityEvent('HIGH_RISK_ADDRESS', { address, riskScore });
+      return false;
+    }
+    
+    return true;
+  }
+  
+  async encryptSensitiveData(data: any): Promise<string> {
+    return await this.encryptionService.encrypt(JSON.stringify(data));
+  }
+  
+  async decryptSensitiveData(encryptedData: string): Promise<any> {
+    const decrypted = await this.encryptionService.decrypt(encryptedData);
+    return JSON.parse(decrypted);
+  }
+}
+```
+
+### 2. API Security Middleware
+
+```typescript
+class APISecurityMiddleware {
+  async validateAPIKey(req: Request, res: Response, next: NextFunction) {
+    const apiKey = req.headers['x-api-key'];
+    
+    if (!apiKey || !await this.isValidAPIKey(apiKey)) {
+      return res.status(401).json({ error: 'Invalid API key' });
+    }
+    
+    // Rate limiting per API key
+    const rateLimitKey = `api_rate_limit:${apiKey}`;
+    const currentRequests = await redis.incr(rateLimitKey);
+    
+    if (currentRequests === 1) {
+      await redis.expire(rateLimitKey, 60); // 1 minute window
+    }
+    
+    if (currentRequests > 100) { // 100 requests per minute
+      return res.status(429).json({ error: 'Rate limit exceeded' });
+    }
+    
+    next();
+  }
+  
+  async validateWalletAuth(req: Request, res: Response, next: NextFunction) {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Missing or invalid authorization header' });
+    }
+    
+    const token = authHeader.substring(7);
+    
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = decoded;
+      next();
+    } catch (error) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+  }
+}
+```
+
+### 3. Smart Contract Security
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract AvalancheTradingBot is ReentrancyGuard, Pausable, Ownable {
+    using SafeMath for uint256;
+    
+    // Security parameters
+    uint256 public constant MAX_SLIPPAGE = 500; // 5%
+    uint256 public constant MAX_GAS_PRICE = 1000 gwei;
+    uint256 public constant MIN_TRADE_AMOUNT = 0.01 ether;
+    
+    // Emergency controls
+    mapping(address => bool) public authorizedOperators;
+    mapping(bytes32 => bool) public executedTrades;
+    
+    modifier onlyAuthorizedOperator() {
+        require(authorizedOperators[msg.sender], "Not authorized operator");
+        _;
+    }
+    
+    modifier validTradeParameters(
+        uint256 amountIn,
+        uint256 minAmountOut,
+        uint256 slippage
+    ) {
+        require(amountIn >= MIN_TRADE_AMOUNT, "Trade amount too small");
+        require(slippage <= MAX_SLIPPAGE, "Slippage too high");
+        require(tx.gasprice <= MAX_GAS_PRICE, "Gas price too high");
+        _;
+    }
+    
+    function executeTrade(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 minAmountOut,
+        uint256 slippage,
+        bytes32 tradeId
+    ) 
+        external
+        nonReentrant
+        whenNotPaused
+        onlyAuthorizedOperator
+        validTradeParameters(amountIn, minAmountOut, slippage)
+    {
+        require(!executedTrades[tradeId], "Trade already executed");
+        executedTrades[tradeId] = true;
+        
+        // Execute trade logic with additional security checks
+        _executeTradeSafely(tokenIn, tokenOut, amountIn, minAmountOut);
+        
+        emit TradeExecuted(tradeId, tokenIn, tokenOut, amountIn, minAmountOut);
+    }
+    
+    function _executeTradeSafely(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 minAmountOut
+    ) internal {
+        // Additional security validations
+        require(_isWhitelistedToken(tokenIn), "Token not whitelisted");
+        require(_isWhitelistedToken(tokenOut), "Token not whitelisted");
+        
+        // Execute trade with DEX router
+        // Implementation depends on specific DEX integration
+    }
+    
+    // Emergency functions
+    function emergencyPause() external onlyOwner {
+        _pause();
+    }
+    
+    function emergencyWithdraw(address token) external onlyOwner {
+        // Emergency withdrawal logic
+    }
+}
+```
+
+## Deployment Architecture
+
+### 1. Kubernetes Configuration
+
+```yaml
+# avalanche-trading-assistant.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: avalanche-trading-assistant
+  namespace: avalanche-prod
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: avalanche-trading-assistant
+  template:
+    metadata:
+      labels:
+        app: avalanche-trading-assistant
+    spec:
+      containers:
+      - name: backend
+        image: avalanche-trading-assistant:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: AVALANCHE_C_CHAIN_RPC
+          value: "https://api.avax.network/ext/bc/C/rpc"
+        - name: AVALANCHE_P_CHAIN_RPC
+          value: "https://api.avax.network/ext/bc/P"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-secret
+              key: url
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: avalanche-trading-service
+spec:
+  selector:
+    app: avalanche-trading-assistant
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: LoadBalancer
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: avalanche-ai-engine
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: avalanche-ai-engine
+  template:
+    metadata:
+      labels:
+        app: avalanche-ai-engine
+    spec:
+      containers:
+      - name: ai-engine
+        image: avalanche-ai-engine:latest
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+            nvidia.com/gpu: 1
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+            nvidia.com/gpu: 1
+```
+
+### 2. Docker Configuration
+
+```dockerfile
+# Backend Dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Copy application code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+USER nextjs
+
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
+
+CMD ["npm", "start"]
+```
+
+```dockerfile
+# AI Engine Dockerfile
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY . .
+
+# Create non-root user
+RUN useradd -m -u 1001 aiuser
+USER aiuser
+
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8000/health || exit 1
+
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+### 3. Infrastructure as Code (Terraform)
+
+```hcl
+# main.tf
+provider "aws" {
+  region = "us-west-2"
+}
+
+# EKS Cluster
+resource "aws_eks_cluster" "avalanche_cluster" {
+  name     = "avalanche-trading-cluster"
+  role_arn = aws_iam_role.cluster.arn
+
+  vpc_config {
+    subnet_ids = [
+      aws_subnet.private_1.id,
+      aws_subnet.private_2.id,
+      aws_subnet.public_1.id,
+      aws_subnet.public_2.id,
+    ]
+    endpoint_private_access = true
+    endpoint_public_access  = true
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.cluster_AmazonEKSClusterPolicy,
+  ]
+}
+
+# RDS PostgreSQL
+resource "aws_db_instance" "postgres" {
+  identifier = "avalanche-trading-db"
+  
+  engine         = "postgres"
+  engine_version = "14.9"
+  instance_class = "db.r5.xlarge"
+  
+  allocated_storage     = 100
+  max_allocated_storage = 1000
+  storage_encrypted     = true
+  
+  db_name  = "avalanche_trading"
+  username = "admin"
+  password = var.db_password
+  
+  vpc_security_group_ids = [aws_security_group.rds.id]
+  db_subnet_group_name   = aws_db_subnet_group.main.name
+  
+  backup_retention_period = 7
+  backup_window          = "03:00-04:00"
+  maintenance_window     = "sun:04:00-sun:05:00"
+  
+  skip_final_snapshot = false
+  final_snapshot_identifier = "avalanche-trading-final-snapshot"
+  
+  tags = {
+    Name = "avalanche-trading-db"
+  }
+}
+
+# ElastiCache Redis
+resource "aws_elasticache_replication_group" "redis" {
+  replication_group_id         = "avalanche-trading-redis"
+  description                  = "Redis for avalanche trading assistant"
+  
+  node_type                    = "cache.r6g.large"
+  port                         = 6379
+  parameter_group_name         = "default.redis7"
+  
+  num_cache_clusters           = 2
+  automatic_failover_enabled   = true
+  multi_az_enabled             = true
+  
+  subnet_group_name            = aws_elasticache_subnet_group.main.name
+  security_group_ids           = [aws_security_group.redis.id]
+  
+  at_rest_encryption_enabled   = true
+  transit_encryption_enabled   = true
+  
+  tags = {
+    Name = "avalanche-trading-redis"
+  }
+}
+
+# Application Load Balancer
+resource "aws_lb" "main" {
+  name               = "avalanche-trading-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb.id]
+  subnets           = [aws_subnet.public_1.id, aws_subnet.public_2.id]
+
+  enable_deletion_protection = true
+
+  tags = {
+    Name = "avalanche-trading-alb"
+  }
+}
+
+# Auto Scaling Group for backend services
+resource "aws_autoscaling_group" "backend" {
+  name                = "avalanche-backend-asg"
+  vpc_zone_identifier = [aws_subnet.private_1.id, aws_subnet.private_2.id]
+  target_group_arns   = [aws_lb_target_group.backend.arn]
+  health_check_type   = "ELB"
+  
+  min_size         = 2
+  max_size         = 10
+  desired_capacity = 3
+  
+  launch_template {
+    id      = aws_launch_template.backend.id
+    version = "$Latest"
+  }
+  
+  tag {
+    key                 = "Name"
+    value               = "avalanche-backend"
+    propagate_at_launch = true
+  }
+}
+```
+
+## Performance & Scalability
+
+### 1. Horizontal Scaling Strategy
+
+```typescript
+class ScalingManager {
+  private metricsCollector: MetricsCollector;
+  private kubernetesAPI: KubernetesAPI;
+  
+  constructor() {
+    this.metricsCollector = new MetricsCollector();
+    this.kubernetesAPI = new KubernetesAPI();
+  }
+  
+  async monitorAndScale(): Promise<void> {
+    const metrics = await this.metricsCollector.getSystemMetrics();
+    
+    // CPU-based scaling
+    if (metrics.avgCPUUsage > 75) {
+      await this.scaleUp('backend-service', 2);
+    } else if (metrics.avgCPUUsage < 25 && metrics.instanceCount > 3) {
+      await this.scaleDown('backend-service', 1);
+    }
+    
+    // Memory-based scaling
+    if (metrics.avgMemoryUsage > 80) {
+      await this.scaleUp('backend-service', 1);
+    }
+    
+    // Request-based scaling
+    if (metrics.requestsPerSecond > 1000) {
+      await this.scaleUp('api-gateway', Math.ceil(metrics.requestsPerSecond / 500));
+    }
+    
+    // AI Engine scaling based on queue depth
+    if (metrics.aiQueueDepth > 100) {
+      await this.scaleUp('ai-engine', 2);
+    }
+  }
+  
+  private async scaleUp(serviceName: string, replicas: number): Promise<void> {
+    await this.kubernetesAPI.scaleDeployment(serviceName, `+${replicas}`);
+    
+    // Log scaling event
+    console.log(`Scaled up ${serviceName} by ${replicas} replicas`);
+  }
+  
+  private async scaleDown(serviceName: string, replicas: number): Promise<void> {
+    await this.kubernetesAPI.scaleDeployment(serviceName, `-${replicas}`);
+    
+    // Log scaling event
+    console.log(`Scaled down ${serviceName} by ${replicas} replicas`);
+  }
+}
+```
+
+### 2. Caching Strategy
+
+```typescript
+class CacheManager {
+  private redisClient: Redis;
+  private localCache: NodeCache;
+  
+  constructor() {
+    this.redisClient = new Redis(process.env.REDIS_URL);
+    this.localCache = new NodeCache({ stdTTL: 60 }); // 1 minute local cache
+  }
+  
+  async get<T>(key: string, fetchFunction?: () => Promise<T>, ttl: number = 300): Promise<T | null> {
+    // Try local cache first (fastest)
+    let data = this.localCache.get<T>(key);
+    if (data) {
+      return data;
+    }
+    
+    // Try Redis cache (fast)
+    const redisData = await this.redisClient.get(key);
+    if (redisData) {
+      data = JSON.parse(redisData);
+      this.localCache.set(key, data, Math.min(ttl, 60)); // Local cache max 1 minute
+      return data;
+    }
+    
+    // Fetch from source (slow)
+    if (fetchFunction) {
+      data = await fetchFunction();
+      
+      if (data) {
+        // Store in both caches
+        await this.redisClient.setex(key, ttl, JSON.stringify(data));
+        this.localCache.set(key, data, Math.min(ttl, 60));
+      }
+      
+      return data;
+    }
+    
+    return null;
+  }
+  
+  async invalidatePattern(pattern: string): Promise<void> {
+    const keys = await this.redisClient.keys(pattern);
+    if (keys.length > 0) {
+      await this.redisClient.del(...keys);
+    }
+    
+    // Clear local cache
+    this.localCache.flushAll();
+  }
+  
+  // Cache warming for frequently accessed data
+  async warmCache(): Promise<void> {
+    const commonKeys = [
+      'avax_price',
+      'validator_list',
+      'subnet_list',
+      'defi_protocols'
+    ];
+    
+    for (const key of commonKeys) {
+      await this.get(key, () => this.fetchFromAPI(key), 300);
+    }
+  }
+}
+```
+
+### 3. Database Optimization
+
+```sql
+-- Performance optimization indexes
+CREATE INDEX CONCURRENTLY idx_portfolios_user_chain ON portfolios(user_id, chain_type) WHERE chain_type IS NOT NULL;
+CREATE INDEX CONCURRENTLY idx_assets_portfolio_token ON assets(portfolio_id, token_address);
+CREATE INDEX CONCURRENTLY idx_trading_orders_user_status ON trading_orders(user_id, status) WHERE status IN ('PENDING', 'PROCESSING');
+CREATE INDEX CONCURRENTLY idx_validators_performance ON validators(uptime DESC, delegation_fee ASC) WHERE uptime > 0.95;
+CREATE INDEX CONCURRENTLY idx_defi_positions_protocol_value ON defi_positions(protocol_name, value_usd DESC) WHERE value_usd > 100;
+
+-- Partitioning for large tables
+CREATE TABLE trading_orders_y2024m01 PARTITION OF trading_orders 
+FOR VALUES FROM ('2024-01-01') TO ('2024-02-01');
+
+CREATE TABLE trading_orders_y2024m02 PARTITION OF trading_orders 
+FOR VALUES FROM ('2024-02-01') TO ('2024-03-01');
+
+-- Materialized views for complex queries
+CREATE MATERIALIZED VIEW portfolio_summary AS
+SELECT 
+    p.user_id,
+    p.chain_type,
+    COUNT(a.id) as asset_count,
+    SUM(a.value_usd) as total_value_usd,
+    AVG(a.value_usd) as avg_asset_value,
+    MAX(p.last_updated) as last_updated
+FROM portfolios p
+LEFT JOIN assets a ON p.id = a.portfolio_id
+GROUP BY p.user_id, p.chain_type;
+
+-- Refresh materialized views periodically
+CREATE OR REPLACE FUNCTION refresh_portfolio_summary()
+RETURNS void AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW CONCURRENTLY portfolio_summary;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Schedule refresh every 5 minutes
+SELECT cron.schedule('refresh-portfolio-summary', '*/5 * * * *', 'SELECT refresh_portfolio_summary();');
+```
+
+### 4. Load Testing Configuration
+
+```typescript
+// load-test.ts
+import { check, sleep } from 'k6';
+import http from 'k6/http';
+
+export let options = {
+  stages: [
+    { duration: '2m', target: 100 }, // Ramp up
+    { duration: '5m', target: 100 }, // Stay at 100 users
+    { duration: '2m', target: 200 }, // Ramp up to 200 users
+    { duration: '5m', target: 200 }, // Stay at 200 users
+    { duration: '2m', target: 0 },   // Ramp down
+  ],
+  thresholds: {
+    http_req_duration: ['p(95)<500'], // 95% of requests must complete below 500ms
+    http_req_failed: ['rate<0.1'],    // Error rate must be below 10%
+  },
+};
+
+export default function() {
+  // Test portfolio endpoint
+  let portfolioResponse = http.get('http://localhost:3000/api/portfolio/0x1234...', {
+    headers: {
+      'Authorization': 'Bearer ' + __ENV.TEST_TOKEN,
+    },
+  });
+  
+  check(portfolioResponse, {
+    'portfolio status is 200': (r) => r.status === 200,
+    'portfolio response time < 500ms': (r) => r.timings.duration < 500,
+  });
+  
+  // Test AI insights endpoint
+  let aiResponse = http.post('http://localhost:3000/api/ai/analyze-portfolio', 
+    JSON.stringify({
+      address: '0x1234...',
+      riskProfile: 'moderate'
+    }),
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + __ENV.TEST_TOKEN,
+      },
+    }
+  );
+  
+  check(aiResponse, {
+    'AI response status is 200': (r) => r.status === 200,
+    'AI response time < 2000ms': (r) => r.timings.duration < 2000,
+  });
+  
+  sleep(1); // Wait 1 second between iterations
+}
+```
+
+### 5. Monitoring and Observability
+
+```typescript
+class MonitoringService {
+  private prometheus: PrometheusRegistry;
+  private grafana: GrafanaAPI;
+  private alertManager: AlertManager;
+  
+  constructor() {
+    this.setupMetrics();
+    this.setupAlerts();
+  }
+  
+  private setupMetrics(): void {
+    // Custom Avalanche-specific metrics
+    const avalancheChainLatency = new prometheus.Histogram({
+      name: 'avalanche_chain_request_duration_seconds',
+      help: 'Duration of Avalanche chain requests',
+      labelNames: ['chain_type', 'method', 'status'],
+      buckets: [0.1, 0.5, 1, 2, 5, 10],
+    });
+    
+    const portfolioCalculationTime = new prometheus.Histogram({
+      name: 'portfolio_calculation_duration_seconds',
+      help: 'Time taken to calculate portfolio values',
+      labelNames: ['chain_count', 'asset_count'],
+      buckets: [0.1, 0.5, 1, 2, 5],
+    });
+    
+    const validatorRecommendationAccuracy = new prometheus.Gauge({
+      name: 'validator_recommendation_accuracy',
+      help: 'Accuracy of validator recommendations',
+      labelNames: ['model_version'],
+    });
+  }
+  
+  private setupAlerts(): void {
+    // High-priority alerts
+    this.alertManager.addAlert({
+      name: 'AvalancheChainDown',
+      condition: 'avalanche_chain_request_duration_seconds{status="error"} > 5',
+      severity: 'critical',
+      description: 'Avalanche chain is experiencing high error rates',
+    });
+    
+    this.alertManager.addAlert({
+      name: 'HighLatency',
+      condition: 'http_request_duration_seconds{percentile="95"} > 1',
+      severity: 'warning',
+      description: 'API response times are high',
+    });
+    
+    this.alertManager.addAlert({
+      name: 'AIModelAccuracyDegraded',
+      condition: 'validator_recommendation_accuracy < 0.85',
+      severity: 'warning',
+      description: 'AI model accuracy has degraded below acceptable threshold',
+    });
+  }
+  
+  async collectCustomMetrics(): Promise<void> {
+    // Collect Avalanche-specific metrics
+    const chainHealthMetrics = await this.getChainHealthMetrics();
+    const portfolioMetrics = await this.getPortfolioMetrics();
+    const aiMetrics = await this.getAIMetrics();
+    
+    // Export to monitoring systems
+    await this.exportMetrics({
+      ...chainHealthMetrics,
+      ...portfolioMetrics,
+      ...aiMetrics,
+    });
+  }
+  
+  private async getChainHealthMetrics(): Promise<any> {
+    return {
+      cchain_block_height: await this.getCChainBlockHeight(),
+      pchain_validator_count: await this.getPChainValidatorCount(),
+      subnet_count: await this.getActiveSubnetCount(),
+    };
+  }
+}
+```
