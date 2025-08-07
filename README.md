@@ -2,8 +2,6 @@
 
 <div align="center">
 
-![Avalanche Logo](https://cryptologos.cc/logos/avalanche-avax-logo.png)
-
 **Enterprise-grade conversational AI assistant built specifically for the Avalanche ecosystem**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -858,4 +856,5 @@ make deploy-prod-blue-green
 [Documentation](./docs/) • [API Reference](./docs/API.md) • [Contributing](./CONTRIBUTING.md) • [Security](./docs/SECURITY.md)
 
 </div>
+
 
