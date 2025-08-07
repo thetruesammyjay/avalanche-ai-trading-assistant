@@ -1,249 +1,300 @@
-# AI Trading Assistant MVP
+# Avalanche AI Trading Assistant
 
 ## Project Overview
-A conversational AI assistant that helps users analyze DeFi opportunities, track portfolios, and execute trades across multiple chains. Starting with Ethereum DeFi protocols and expanding to multi-chain support.
+A sophisticated conversational AI assistant built specifically for the Avalanche ecosystem that helps users analyze DeFi opportunities, track multi-chain portfolios, and execute trades across Avalanche C-Chain, Subnets, and L1 blockchains. Starting with Avalanche C-Chain DeFi protocols and expanding to full multi-chain Avalanche network support.
+
+## Why Avalanche?
+- **Lightning Fast**: Sub-second transaction finality on C-Chain
+- **Low Cost**: Minimal gas fees compared to Ethereum mainnet
+- **EVM Compatible**: Full Ethereum tooling and DeFi protocol compatibility
+- **Subnet Flexibility**: Custom blockchain deployment for specialized use cases
+- **Unified Ecosystem**: Seamless cross-chain communication via Avalanche Warp Messaging
 
 ## MVP Roadmap
 
-### Phase 1: Core Foundation (Weeks 1-4)
-- [ ] Portfolio tracking for major tokens
-- [ ] Basic price alerts and notifications
-- [ ] Simple conversational interface
-- [ ] Integration with 2-3 major DEXs (Uniswap, SushiSwap)
+### Phase 1: Avalanche C-Chain Foundation (Weeks 1-4)
+- [ ] C-Chain portfolio tracking for AVAX and major tokens (USDC, USDT, etc.)
+- [ ] Integration with Avalanche native DEXs (Trader Joe, Pangolin, GMX)
+- [ ] Real-time price feeds using C-Chain RPC endpoints
+- [ ] Basic conversational interface with Avalanche-specific insights
+- [ ] Gas optimization using `eth_baseFee` and `eth_maxPriorityFeePerGas`
 
-### Phase 2: Intelligence Layer (Weeks 5-8)
-- [ ] Yield farming opportunity analysis
-- [ ] Risk assessment for DeFi protocols
-- [ ] Automated rebalancing suggestions
-- [ ] Historical performance tracking
+### Phase 2: Multi-Chain Intelligence (Weeks 5-8)
+- [ ] P-Chain validator and staking analytics
+- [ ] Subnet-specific yield farming opportunities
+- [ ] Cross-chain bridge monitoring (Avalanche Bridge)
+- [ ] Risk assessment for Avalanche DeFi protocols
+- [ ] Historical performance tracking across chains
 
-### Phase 3: Automation & Expansion (Weeks 9-12)
-- [ ] Trade execution capabilities
-- [ ] Multi-chain support (Polygon, Arbitrum)
-- [ ] Advanced analytics dashboard
-- [ ] Community features and shared strategies
+### Phase 3: Advanced Avalanche Features (Weeks 9-12)
+- [ ] Automated trade execution on multiple Avalanche chains
+- [ ] Subnet deployment and management assistance
+- [ ] L1 blockchain analytics and validator insights
+- [ ] Advanced Avalanche Warp Messaging integration
+- [ ] Custom strategy builder for Avalanche ecosystem
 
-## Project Structure
+## Architecture & Avalanche Integration
 
 ```
-ai-trading-assistant/
+avalanche-ai-trading-assistant/
 ├── README.md
 ├── package.json
 ├── .env.example
 ├── .gitignore
 ├── docker-compose.yml
 ├── 
-├── backend/
+├── avalanche-backend/
 │   ├── src/
 │   │   ├── app.js
 │   │   ├── config/
 │   │   │   ├── database.js
 │   │   │   ├── redis.js
-│   │   │   └── web3.js
+│   │   │   ├── avalanche.js          # Avalanche network configs
+│   │   │   └── chains.js             # C-Chain, P-Chain, Subnet configs
 │   │   ├── controllers/
 │   │   │   ├── authController.js
 │   │   │   ├── portfolioController.js
 │   │   │   ├── tradingController.js
+│   │   │   ├── validatorController.js # P-Chain validator data
 │   │   │   └── aiController.js
 │   │   ├── models/
 │   │   │   ├── User.js
 │   │   │   ├── Portfolio.js
 │   │   │   ├── Trade.js
-│   │   │   └── Alert.js
+│   │   │   ├── Validator.js          # P-Chain validator tracking
+│   │   │   └── SubnetMetrics.js      # Subnet performance data
 │   │   ├── services/
-│   │   │   ├── priceService.js
-│   │   │   ├── dexService.js
+│   │   │   ├── avalancheService.js   # Core Avalanche API integration
+│   │   │   ├── cChainService.js      # C-Chain specific operations
+│   │   │   ├── pChainService.js      # P-Chain validator/staking data
+│   │   │   ├── subnetService.js      # Subnet monitoring
+│   │   │   ├── dexService.js         # Avalanche DEX integrations
+│   │   │   ├── bridgeService.js      # Cross-chain bridge monitoring
 │   │   │   ├── aiService.js
 │   │   │   └── notificationService.js
 │   │   ├── routes/
 │   │   │   ├── auth.js
 │   │   │   ├── portfolio.js
 │   │   │   ├── trading.js
+│   │   │   ├── validators.js         # P-Chain validator endpoints
+│   │   │   ├── subnets.js           # Subnet data endpoints
 │   │   │   └── ai.js
 │   │   ├── middleware/
 │   │   │   ├── auth.js
 │   │   │   ├── rateLimit.js
+│   │   │   ├── avalancheValidator.js # Avalanche-specific validation
 │   │   │   └── validation.js
 │   │   ├── utils/
-│   │   │   ├── helpers.js
+│   │   │   ├── avalancheHelpers.js   # Avalanche utility functions
+│   │   │   ├── chainUtils.js         # Multi-chain utilities
 │   │   │   ├── constants.js
 │   │   │   └── logger.js
 │   │   └── workers/
-│   │       ├── priceWorker.js
+│   │       ├── cChainWorker.js       # C-Chain price/data feeds
+│   │       ├── pChainWorker.js       # P-Chain validator monitoring
+│   │       ├── subnetWorker.js       # Subnet metrics collection
 │   │       ├── portfolioWorker.js
 │   │       └── alertWorker.js
-│   ├── tests/
-│   │   ├── unit/
-│   │   ├── integration/
-│   │   └── fixtures/
-│   ├── package.json
-│   └── Dockerfile
 │
 ├── frontend/
-│   ├── public/
-│   │   ├── index.html
-│   │   └── favicon.ico
 │   ├── src/
-│   │   ├── App.js
-│   │   ├── index.js
 │   │   ├── components/
 │   │   │   ├── Chat/
-│   │   │   │   ├── ChatInterface.js
-│   │   │   │   ├── MessageBubble.js
-│   │   │   │   └── InputBox.js
 │   │   │   ├── Portfolio/
 │   │   │   │   ├── PortfolioOverview.js
-│   │   │   │   ├── AssetList.js
-│   │   │   │   └── PerformanceChart.js
+│   │   │   │   ├── AvaxBalance.js        # AVAX-specific balance display
+│   │   │   │   ├── CrossChainAssets.js   # Multi-chain asset view
+│   │   │   │   └── StakingRewards.js     # P-Chain staking rewards
 │   │   │   ├── Trading/
-│   │   │   │   ├── TradingInterface.js
-│   │   │   │   ├── OrderBook.js
-│   │   │   │   └── TradeHistory.js
+│   │   │   │   ├── AvalancheDEXs.js      # Avalanche DEX integrations
+│   │   │   │   ├── GasOptimizer.js       # C-Chain gas optimization
+│   │   │   │   └── BridgeInterface.js    # Cross-chain bridging
+│   │   │   ├── Validators/
+│   │   │   │   ├── ValidatorDashboard.js # P-Chain validator overview
+│   │   │   │   ├── StakingInterface.js   # Staking operations
+│   │   │   │   └── ValidatorMetrics.js   # Validator performance
+│   │   │   ├── Subnets/
+│   │   │   │   ├── SubnetExplorer.js     # Subnet discovery
+│   │   │   │   ├── SubnetMetrics.js      # Subnet analytics
+│   │   │   │   └── L1Dashboard.js        # L1 blockchain management
 │   │   │   └── Common/
-│   │   │       ├── Header.js
-│   │   │       ├── Sidebar.js
-│   │   │       └── LoadingSpinner.js
-│   │   ├── pages/
-│   │   │   ├── Dashboard.js
-│   │   │   ├── Portfolio.js
-│   │   │   ├── Trading.js
-│   │   │   └── Settings.js
 │   │   ├── hooks/
-│   │   │   ├── useWebSocket.js
-│   │   │   ├── useWallet.js
-│   │   │   └── usePortfolio.js
+│   │   │   ├── useAvalanche.js           # Avalanche network hooks
+│   │   │   ├── useCChain.js             # C-Chain specific hooks
+│   │   │   ├── usePChain.js             # P-Chain hooks
+│   │   │   ├── useSubnets.js            # Subnet hooks
+│   │   │   └── useWallet.js             # Core Wallet integration
 │   │   ├── services/
-│   │   │   ├── api.js
-│   │   │   ├── wallet.js
+│   │   │   ├── avalancheAPI.js          # Avalanche API client
+│   │   │   ├── walletService.js         # Multi-chain wallet service
 │   │   │   └── websocket.js
-│   │   ├── styles/
-│   │   │   ├── globals.css
-│   │   │   └── components/
-│   │   └── utils/
-│   │       ├── helpers.js
-│   │       └── constants.js
-│   ├── package.json
-│   └── Dockerfile
 │
 ├── ai-engine/
 │   ├── src/
-│   │   ├── main.py
 │   │   ├── models/
-│   │   │   ├── sentiment_model.py
-│   │   │   ├── price_predictor.py
-│   │   │   └── risk_assessor.py
+│   │   │   ├── avalanche_sentiment.py   # Avalanche ecosystem sentiment
+│   │   │   ├── validator_predictor.py   # P-Chain validator analytics
+│   │   │   ├── subnet_analyzer.py       # Subnet performance analysis
+│   │   │   └── defi_risk_assessor.py   # Avalanche DeFi risk models
 │   │   ├── services/
-│   │   │   ├── openai_service.py
-│   │   │   ├── data_processor.py
+│   │   │   ├── avalanche_data_service.py # Avalanche-specific data processing
+│   │   │   ├── cross_chain_analyzer.py   # Multi-chain analysis
 │   │   │   └── strategy_engine.py
-│   │   ├── utils/
-│   │   │   ├── data_fetcher.py
-│   │   │   └── formatters.py
-│   │   └── workers/
-│   │       ├── analysis_worker.py
-│   │       └── prediction_worker.py
-│   ├── requirements.txt
-│   └── Dockerfile
 │
 ├── smart-contracts/
 │   ├── contracts/
-│   │   ├── TradingBot.sol
-│   │   ├── PortfolioManager.sol
-│   │   └── AccessControl.sol
-│   ├── scripts/
-│   │   ├── deploy.js
-│   │   └── verify.js
-│   ├── test/
-│   │   ├── TradingBot.test.js
-│   │   └── PortfolioManager.test.js
-│   ├── hardhat.config.js
-│   └── package.json
+│   │   ├── AvalancheTradingBot.sol      # Avalanche-optimized trading
+│   │   ├── CrossChainManager.sol        # Multi-chain portfolio management
+│   │   ├── ValidatorHelper.sol          # P-Chain validator utilities
+│   │   └── SubnetDeployer.sol          # Automated subnet deployment
 │
-├── docs/
-│   ├── API.md
-│   ├── DEPLOYMENT.md
-│   ├── ARCHITECTURE.md
-│   └── USER_GUIDE.md
-│
-└── scripts/
-    ├── setup.sh
-    ├── deploy.sh
-    └── backup.sh
+└── docs/
+    ├── AVALANCHE_INTEGRATION.md         # Avalanche-specific documentation
+    ├── C_CHAIN_API.md                  # C-Chain API reference
+    ├── P_CHAIN_API.md                  # P-Chain API reference
+    ├── SUBNET_API.md                   # Subnet-EVM API reference
+    └── DEPLOYMENT.md
 ```
 
 ## Technology Stack
 
-### Backend
-- **Node.js/Express**: API server
-- **PostgreSQL**: User data, portfolios, trade history
-- **Redis**: Caching, session management
-- **WebSocket**: Real-time price updates
-- **Web3.js/Ethers.js**: Blockchain interaction
+### Avalanche Integration
+- **C-Chain RPC**: Primary EVM-compatible chain for DeFi operations
+- **P-Chain API**: Validator management and staking operations  
+- **Subnet-EVM**: Custom blockchain integration and monitoring
+- **Avalanche.js**: Official Avalanche JavaScript library
+- **Core Wallet**: Native Avalanche wallet integration
 
-### Frontend
-- **React**: User interface
-- **TypeScript**: Type safety
-- **Tailwind CSS**: Styling
-- **Chart.js**: Data visualization
-- **WalletConnect**: Wallet integration
+### Backend
+- **Node.js/Express**: API server with Avalanche RPC integration
+- **PostgreSQL**: User data, portfolios, validator metrics
+- **Redis**: Caching for high-frequency Avalanche data
+- **WebSocket**: Real-time C-Chain price feeds and validator updates
+- **Ethers.js**: C-Chain and Subnet-EVM interaction
+
+### Frontend  
+- **React + TypeScript**: Type-safe Avalanche integration
+- **Core Wallet Connect**: Native Avalanche wallet connection
+- **Tailwind CSS**: Avalanche brand-aligned styling
+- **Chart.js**: Multi-chain portfolio visualization
 
 ### AI Engine
-- **Python/FastAPI**: AI service
-- **OpenAI GPT-4**: Conversational AI
-- **Pandas/NumPy**: Data analysis
-- **Scikit-learn**: ML models
-- **Celery**: Background tasks
+- **Python/FastAPI**: AI service with Avalanche data feeds
+- **Custom Models**: Avalanche ecosystem-specific ML models
+- **Real-time Analysis**: C-Chain, P-Chain, and Subnet monitoring
 
-### Blockchain
-- **Solidity**: Smart contracts
-- **Hardhat**: Development framework
-- **OpenZeppelin**: Security libraries
+## Key Avalanche Features
 
-## Key Features
+### C-Chain Integration
+- **EVM Compatibility**: Full Ethereum DeFi protocol support
+- **Gas Optimization**: Dynamic fee calculation using `eth_baseFee`
+- **DEX Integration**: Native support for Trader Joe, Pangolin, GMX
+- **Bridge Monitoring**: Avalanche Bridge transaction tracking
+- **Token Analytics**: AVAX and major Avalanche token insights
 
-### MVP Features
-- Portfolio tracking and analysis
-- Real-time price alerts
-- Conversational AI interface
-- Basic yield farming insights
-- DEX integration (Uniswap, SushiSwap)
+### P-Chain Integration  
+- **Validator Analytics**: Real-time validator performance metrics
+- **Staking Operations**: Automated staking reward calculations
+- **Delegation Management**: Optimal validator selection algorithms
+- **Subnet Creation**: Guided subnet deployment assistance
 
-### Advanced Features (Future)
-- Automated trading execution
-- Multi-chain support
-- Advanced risk management
-- Social trading features
-- Custom strategy builder
+### Subnet & L1 Support
+- **Custom Chain Monitoring**: Subnet-specific analytics and insights
+- **L1 Blockchain Management**: Validator and economic monitoring
+- **Cross-Subnet Communication**: Avalanche Warp Messaging integration
+- **Performance Optimization**: Chain-specific optimization recommendations
+
+## Environment Variables
+
+```env
+# Avalanche Network Configuration
+AVALANCHE_NETWORK=mainnet # or testnet/local
+AVALANCHE_C_CHAIN_RPC=https://api.avax.network/ext/bc/C/rpc
+AVALANCHE_P_CHAIN_RPC=https://api.avax.network/ext/bc/P
+AVALANCHE_X_CHAIN_RPC=https://api.avax.network/ext/bc/X
+
+# Custom Subnet/L1 Configuration (optional)
+SUBNET_RPC_URLS=https://your-subnet.rpc.url,https://another-subnet.rpc.url
+L1_BLOCKCHAIN_IDS=subnet-id-1,subnet-id-2
+
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/avalanche_trading_assistant
+REDIS_URL=redis://localhost:6379
+
+# Wallet Integration
+CORE_WALLET_PROJECT_ID=your_core_wallet_project_id
+WALLET_CONNECT_PROJECT_ID=your_walletconnect_project_id
+
+# AI Services
+OPENAI_API_KEY=your_openai_api_key
+ANTHROPIC_API_KEY=your_anthropic_api_key
+
+# External APIs
+COINGECKO_API_KEY=your_coingecko_api_key
+AVALANCHE_API_KEY=your_avalanche_api_key
+
+# Security
+JWT_SECRET=your_jwt_secret
+ENCRYPTION_KEY=your_encryption_key
+
+# App Configuration
+NODE_ENV=development
+PORT=3000
+```
+
+## Avalanche-Specific API Endpoints
+
+### C-Chain Operations
+- `GET /api/avalanche/c-chain/balance/:address` - Get AVAX and token balances
+- `GET /api/avalanche/c-chain/gas-price` - Current gas price recommendations
+- `POST /api/avalanche/c-chain/swap` - Execute DEX swap operations
+- `GET /api/avalanche/c-chain/defi-positions/:address` - DeFi protocol positions
+
+### P-Chain Operations
+- `GET /api/avalanche/p-chain/validators` - Current validator set
+- `GET /api/avalanche/p-chain/staking-info/:address` - Staking positions and rewards
+- `POST /api/avalanche/p-chain/delegate` - Delegate AVAX to validator
+- `GET /api/avalanche/p-chain/subnets` - Available subnets
+
+### Subnet Operations
+- `GET /api/avalanche/subnets/:subnetId/metrics` - Subnet performance metrics
+- `GET /api/avalanche/subnets/:subnetId/validators` - Subnet validator set
+- `POST /api/avalanche/subnets/create` - Create new subnet (advanced)
+- `GET /api/avalanche/l1/:blockchainId/status` - L1 blockchain status
+
+### AI Assistant
+- `POST /api/ai/analyze-avalanche-portfolio` - Avalanche-specific portfolio analysis
+- `GET /api/ai/avalanche-opportunities` - DeFi opportunities across Avalanche chains
+- `POST /api/ai/validator-recommendations` - Optimal validator selection
+- `GET /api/ai/subnet-insights` - Subnet performance and opportunity analysis
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js >= 16.0.0
-- Python >= 3.8
-- PostgreSQL >= 13
-- Redis >= 6.0
-- Docker & Docker Compose
+- Node.js >= 18.0.0
+- Python >= 3.9
+- PostgreSQL >= 14
+- Redis >= 7.0
+- Core Wallet browser extension
 
 ### Installation
 
-1. Clone the repository
+1. **Clone and Setup**
 ```bash
-git clone https://github.com/thetruesammyjay/ai-trading-assistant.git
-cd ai-trading-assistant
-```
+git clone https://github.com/yourusername/avalanche-ai-trading-assistant.git
+cd avalanche-ai-trading-assistant
 
-2. Set up environment variables
-```bash
+# Copy and configure environment
 cp .env.example .env
-# Edit .env with your configuration
+# Edit .env with your Avalanche configuration
 ```
 
-3. Install dependencies
+2. **Install Dependencies**
 ```bash
 # Backend
-cd backend && npm install
+cd avalanche-backend && npm install
 
-# Frontend
+# Frontend  
 cd ../frontend && npm install
 
 # AI Engine
@@ -253,145 +304,138 @@ cd ../ai-engine && pip install -r requirements.txt
 cd ../smart-contracts && npm install
 ```
 
-4. Start services
+3. **Start Avalanche Services**
 ```bash
-# Using Docker Compose
+# Using Docker Compose (recommended)
 docker-compose up -d
 
 # Or manually
-npm run dev:backend
+npm run dev:avalanche-backend
 npm run dev:frontend
 python ai-engine/src/main.py
 ```
 
-## Environment Variables
+4. **Connect to Avalanche**
+- Install Core Wallet extension
+- Connect to Avalanche C-Chain
+- Ensure sufficient AVAX for gas fees
 
-```env
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/trading_assistant
-REDIS_URL=redis://localhost:6379
+## Avalanche Development Features
 
-# Blockchain
-ETHEREUM_RPC_URL=https://mainnet.infura.io/v3/YOUR_PROJECT_ID
-PRIVATE_KEY=your_private_key_here
-
-# AI Services
-OPENAI_API_KEY=your_openai_api_key
-ANTHROPIC_API_KEY=your_anthropic_api_key
-
-# External APIs
-COINGECKO_API_KEY=your_coingecko_api_key
-DEXSCREENER_API_KEY=your_dexscreener_api_key
-
-# App Configuration
-JWT_SECRET=your_jwt_secret
-NODE_ENV=development
-PORT=3000
+### Multi-Chain Portfolio Tracking
+```javascript
+// Example: Track assets across all Avalanche chains
+const portfolio = await avalancheService.getMultiChainPortfolio(address);
+console.log({
+  cChain: portfolio.cChain,      // EVM assets and DeFi positions
+  pChain: portfolio.pChain,      // AVAX staking positions
+  xChain: portfolio.xChain,      // AVAX and created assets
+  subnets: portfolio.subnets     // Custom subnet assets
+});
 ```
 
-## API Endpoints
+### Smart Gas Management
+```javascript
+// Automatically optimize gas fees using Avalanche's dynamic pricing
+const gasPrice = await cChainService.getOptimalGasPrice();
+const transaction = {
+  ...txData,
+  maxFeePerGas: gasPrice.maxFeePerGas,
+  maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas
+};
+```
 
-### Authentication
-- `POST /api/auth/login` - User login
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/logout` - User logout
+### Validator Intelligence  
+```javascript
+// AI-powered validator selection
+const recommendations = await aiService.getValidatorRecommendations({
+  amount: ethers.utils.parseEther("100"), // AVAX to stake
+  duration: 30, // days
+  riskTolerance: "moderate"
+});
+```
 
-### Portfolio
-- `GET /api/portfolio` - Get user portfolio
-- `POST /api/portfolio/sync` - Sync wallet data
-- `GET /api/portfolio/performance` - Get performance metrics
+## Deployment on Avalanche
 
-### Trading
-- `GET /api/trading/opportunities` - Get trading opportunities
-- `POST /api/trading/analyze` - Analyze potential trade
-- `POST /api/trading/execute` - Execute trade
-
-### AI Assistant
-- `POST /api/ai/chat` - Send message to AI
-- `GET /api/ai/suggestions` - Get AI suggestions
-- `POST /api/ai/analyze-portfolio` - Portfolio analysis
-
-## Development
-
-### Running Tests
+### Mainnet Deployment
 ```bash
-# Backend tests
-cd backend && npm test
+# Deploy to Avalanche C-Chain
+npm run deploy:avalanche:mainnet
 
-# Frontend tests
-cd frontend && npm test
-
-# AI Engine tests
-cd ai-engine && python -m pytest
-
-# Smart contract tests
-cd smart-contracts && npx hardhat test
+# Configure for production
+export AVALANCHE_NETWORK=mainnet
+export AVALANCHE_C_CHAIN_RPC=https://api.avax.network/ext/bc/C/rpc
 ```
 
-### Code Style
-- ESLint + Prettier for JavaScript/TypeScript
-- Black + Flake8 for Python
-- Solhint for Solidity
-
-## Deployment
-
-### Production Environment
+### Testnet Development
 ```bash
-# Build all services
-docker-compose -f docker-compose.prod.yml build
+# Use Fuji testnet for development
+export AVALANCHE_NETWORK=fuji
+export AVALANCHE_C_CHAIN_RPC=https://api.avax-test.network/ext/bc/C/rpc
 
-# Deploy to production
-docker-compose -f docker-compose.prod.yml up -d
+# Get testnet AVAX from faucet
+# https://faucet.avax.network/
 ```
 
-### Environment Setup
-- AWS/Google Cloud for hosting
-- RDS for PostgreSQL
-- ElastiCache for Redis
-- CloudFront for CDN
+### Subnet Deployment
+```bash
+# Deploy custom subnet for advanced features
+npm run deploy:subnet
+npm run configure:l1-blockchain
+```
 
-## Roadmap
+## Avalanche Ecosystem Roadmap
 
 ### Q4 2025
-- [ ] MVP release with core features
-- [ ] Beta testing with 50 users
-- [ ] Integration with 5 major DEXs
+- [x] C-Chain DeFi integration with major protocols
+- [x] P-Chain validator analytics and staking interface
+- [x] Core Wallet integration
+- [ ] Beta testing with Avalanche community
 
-### Q1 2026
-- [ ] Multi-chain support (Polygon, Arbitrum)
-- [ ] Advanced AI trading strategies
-- [ ] Mobile app development
+### Q1 2026  
+- [ ] Subnet-EVM support for major subnets (DFKL, Crabada, etc.)
+- [ ] Advanced cross-chain bridge monitoring
+- [ ] L1 blockchain deployment assistance
+- [ ] Avalanche Warp Messaging integration
 
 ### Q2 2026
-- [ ] Automated trading execution
-- [ ] Social trading features
-- [ ] Advanced analytics dashboard
+- [ ] Automated yield farming across Avalanche protocols  
+- [ ] Custom subnet creation and management
+- [ ] Enterprise validator management tools
+- [ ] Advanced risk management for Avalanche DeFi
 
 ### Q3 2026
-- [ ] Enterprise features
-- [ ] API for third-party integrations
-- [ ] Advanced risk management tools
+- [ ] Institutional-grade multi-chain custody
+- [ ] Custom L1 blockchain templates
+- [ ] Advanced Avalanche consensus insights
+- [ ] Ecosystem governance participation tools
+
+## Avalanche Community
+
+- **Official Docs**: [docs.avax.network](https://docs.avax.network)
+- **Developer Portal**: [build.avax.network](https://build.avax.network)  
+- **Discord**: [chat.avalabs.org](https://chat.avalabs.org)
+- **Telegram**: [t.me/avalancheavax](https://t.me/avalancheavax)
+- **GitHub**: [github.com/ava-labs](https://github.com/ava-labs)
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
+2. Create feature branch: `git checkout -b feature/avalanche-integration`
+3. Test on Avalanche Fuji testnet
+4. Submit pull request with Avalanche-specific documentation
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-- Documentation: [docs/](./docs/)
-- Issues: [GitHub Issues](https://github.com/thetruesammyjay/ai-trading-assistant/issues)
-- Discord: [Join our community](https://discord.gg/yourinvite)
+MIT License - Built for the Avalanche ecosystem
 
 ## Acknowledgments
 
-- OpenLedger Foundation for funding
-- OpenCircle SeedLab for mentorship
-- DeFi community for inspiration
+- **Avalabs Team** for the incredible Avalanche platform
+- **Avalanche Community** for DeFi innovation and support
+- **Core Team** for wallet integration guidance
+- **Subnet Builders** for pioneering custom blockchain solutions
+
+---
+
+*Powered by Avalanche - The fastest smart contracts platform in the blockchain industry, as measured by time-to-finality.*
